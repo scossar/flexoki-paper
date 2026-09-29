@@ -1,0 +1,1 @@
+require("flexoki-paper").load()
