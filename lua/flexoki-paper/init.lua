@@ -469,17 +469,41 @@ function M.load()
     FlashCurrent = { fg = c.red, bg = c.red_bg },
   }
 
-  for name, spec in pairs(M.options.highlights or {}) do
-    groups[name] = vim.tbl_extend("force", groups[name] or {}, spec)
+  for name, spec in pairs(groups) do
+    set(0, name, spec)
   end
 
-  for name, spec in pairs(groups) do
+  local overrides = M.options.highlights or {}
+  local function resolve(name, visiting)
+    assert(not visiting[name], "Circular highlight link in overrides: " .. name)
+    visiting[name] = true
+    local base = groups[name] or vim.api.nvim_get_hl(0, { name = name })
+    local override = overrides[name] or {}
+    if override.link then
+      override = { link = override.link }
+    end
+    local link = override.link or base.link
+    if link then
+      base = resolve(link, visiting)
+    end
+    local result = vim.tbl_extend("force", base, override)
+    result.link = nil
+    visiting[name] = nil
+    return result
+  end
+
+  -- Resolve before applying so linked overrides do not depend on iteration order.
+  local resolved = {}
+  for name, spec in pairs(overrides) do
+    resolved[name] = spec.link and { link = spec.link } or resolve(name, {})
+  end
+  for name, spec in pairs(resolved) do
     set(0, name, spec)
   end
 
   local terminal = {
     c.ink, c.red, c.green, c.yellow, c.blue, c.magenta, c.cyan, c.base700,
-    c.base600, "#D14D41", "#879A39", "#D0A215", "#4385BE", "#CE5D97", "#3AA99F", c.ink,
+    c.base600, "#D14D41", "#879A39", "#D0A215", "#4385BE", "#CE5D97", "#3AA99F", c.paper,
   }
   for i, color in ipairs(terminal) do
     vim.g["terminal_color_" .. (i - 1)] = color
