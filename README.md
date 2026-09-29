@@ -7,6 +7,8 @@ diagnostics, and common Neovim plugins.
 The primary target is LazyVim as used with Omarchy. A true-color terminal is
 required; loading the theme enables `termguicolors` and sets `background=light`.
 
+![flexoki-paper](images/flexoki-paper.png)
+
 ## Tested environment
 
 Reviewed with Neovim **0.12.5**, LazyVim **`999700997f72227187d49d8b92667183dc7fc809`**,
